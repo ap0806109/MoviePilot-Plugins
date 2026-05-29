@@ -1,0 +1,1 @@
+import{importShared as e}from"./__federation_fn_import.js";import{_ as r}from"./PTPiler.vue_vue_type_script_setup_true_lang.js";const{createApp:u}=await e("vue"),{createVuetify:a}=await e("vuetify");function c(n){const o=a({theme:{defaultTheme:"dark"},icons:{defaultSet:"mdi"}}),t=u(r);return t.use(o),t.mount(n),{unmount(){t.unmount()}}}export{c as render};

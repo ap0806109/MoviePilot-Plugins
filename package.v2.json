@@ -1,5 +1,5 @@
 {
-  "PTPiler": {
+  "ptpiler": {
     "name": "PT Piler",
     "description": "PT站點管理工具，支持多站點用戶信息聚合、種子搜索、下載器推送",
     "labels": "PT,種子,下載",

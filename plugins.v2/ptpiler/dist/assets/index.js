@@ -1,1 +1,0 @@
-import{importShared as t}from"./__federation_fn_import.js";import{_ as a}from"./PTPiler.vue_vue_type_script_setup_true_lang.js";const{createApp:i}=await t("vue"),{createVuetify:o}=await t("vuetify"),m=o({theme:{defaultTheme:"dark"},icons:{defaultSet:"mdi"}}),e=i(a);e.use(m);e.mount("#app");

@@ -19,8 +19,8 @@ class PTPiler(_PluginBase):
     plugin_desc = "PT站點管理工具，支持多站點用戶信息聚合、種子搜索、下載器推送"
     plugin_icon = "https://raw.githubusercontent.com/pt-plugins/PT-depiler/master/public/icon.png"
     plugin_version = "1.0.0"
-    plugin_author = "ptdepiler"
-    author_url = "https://github.com/pt-plugins/PT-depiler"
+    plugin_author = "ap0806109"
+    author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "ptpiler_"
     plugin_order = 99
     auth_level = 1

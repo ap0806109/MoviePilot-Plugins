@@ -1,0 +1,15 @@
+{
+  "ptpiler": {
+    "name": "PT Piler",
+    "description": "PT站點管理工具，支持多站點用戶信息聚合、種子搜索、下載器推送",
+    "labels": "PT,種子,下載",
+    "version": "1.0.2",
+    "icon": "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/img.png",
+    "author": "ap0806109",
+    "system_version": ">=2.12.0",
+    "level": 1,
+    "history": {
+      "v1.0.0": "初始版本，支持站點管理、用戶信息聚合、搜索功能"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { importShared } from './__federation_fn_import-6gF0Hpk-.js';
+import { importShared } from './__federation_fn_import-JrT3xvdd.js';
 
 const _export_sfc = (sfc, props) => {
   const target = sfc.__vccOpts || sfc;

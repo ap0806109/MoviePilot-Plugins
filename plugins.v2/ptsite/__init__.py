@@ -216,9 +216,9 @@ class PTSite(_PluginBase):
             },
         ]
 
-    def get_render_mode(self) -> Tuple[str, str]:
+    def get_render_mode(self) -> Tuple[str, Optional[str]]:
         """使用 Vue 联邦模式渲染"""
-        return "vue", "dist/assets/assets"
+        return "vue", "dist/assets"
 
     def get_sidebar_nav(self) -> List[Dict[str, Any]]:
         """注册侧栏菜单入口"""

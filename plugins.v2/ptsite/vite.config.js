@@ -12,19 +12,29 @@ export default defineConfig({
       exposes: {
         './AppPage': './src/components/AppPage.vue',
       },
-      shared: ['vue', 'vuetify'],
+      shared: {
+        vue: {
+          requiredVersion: false,
+          generate: false,
+        },
+        vuetify: {
+          requiredVersion: false,
+          generate: false,
+          singleton: true,
+        },
+        'vuetify/styles': {
+          requiredVersion: false,
+          generate: false,
+          singleton: true,
+        },
+      },
+      format: 'esm',
     }),
   ],
   build: {
     target: 'esnext',
     minify: false,
-    modulePreload: false,
-    rollupOptions: {
-      output: {
-        format: 'esm',
-        dir: 'dist/assets',
-      },
-    },
+    cssCodeSplit: false,
   },
   resolve: {
     alias: {

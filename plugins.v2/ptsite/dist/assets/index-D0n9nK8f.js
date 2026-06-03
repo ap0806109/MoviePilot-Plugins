@@ -1,6 +1,44 @@
-import { importShared } from './__federation_fn_import-6gF0Hpk-.js';
-import { p as propsFactory, i as includes, a as isOn, e as eventName, g as genericComponent, b as isPrimitive, c as callEvent, d as getCurrentInstance, f as provideTheme, h as createLayout, u as useRtl, m as makeThemeProps, o as omit, j as makeLayoutProps, P as PREFERS_REDUCED_MOTION, k as acceleratedEasing, l as deceleratedEasing, s as standardEasing, n as provideDefaults, q as convertToUnit, r as destructComputed, t as isCssColor, v as isParsableColor, w as parseColor, x as getForeground, y as getCurrentInstanceName, z as isObject, A as onlyDefinedProps, S as SUPPORTS_INTERSECTION, B as clamp, C as consoleWarn, D as useProxiedModel, E as useToggleScope, F as useLayoutItem, G as makeLayoutItemProps, H as findChildrenWithProvide, I as wrapInArray, J as useTheme, K as useIcon, L as IconValue, M as flattenFragments, N as useResizeObserver, O as hasEvent, Q as IN_BROWSER, R as useLocale, T as EventProp, U as filterInputAttrs, V as matchesSelector, W as pick, X as useDisplay, Y as useGoTo, Z as focusableChildren, _ as makeDisplayProps, $ as consoleError, a0 as defineComponent, a1 as deprecate, a2 as getPropertyFromItem, a3 as focusChild, a4 as CircularBuffer, a5 as defer, a6 as templateRef, a7 as isClickInsideElement, a8 as getNextElement, a9 as debounce, aa as camelizeProps, ab as ensureValidVNode, ac as checkPrintable, ad as noop, ae as pickWithRest, af as provideLocale, ag as useDate, ah as keys, ai as getEventCoordinates, aj as HexToHSV, ak as HSVtoHex, al as HSLtoHSV, am as HSVtoHSL, an as RGBtoHSV, ao as HSVtoRGB, ap as has, aq as getDecimals, ar as createRange, as as keyValues, at as SUPPORTS_EYE_DROPPER, au as HSVtoCSS, av as RGBtoCSS, aw as getContrast, ax as escapeForRegex, ay as isComposingIgnoreKey, az as deepToRaw, aA as getObjectValueByPath, aB as isEmpty, aC as defineFunctionalComponent, aD as breakpoints, aE as createDateRange, aF as daysDiff, aG as humanReadableFileSize, aH as splitKeySequence, aI as splitKeyCombination, aJ as mergeDeep, aK as useLayout, aL as extractNumber, aM as VuetifyLayoutKey, aN as refElement, aO as SUPPORTS_MATCH_MEDIA, aP as renderSlot, aQ as VClassIcon, aR as VComponentIcon, aS as VLigatureIcon, aT as VSvgIcon } from './hotkey-parsing-CWmal5EI.js';
-import AppPage from './__federation_expose_AppPage-C-OOOgG7.js';
+import { importShared } from './__federation_fn_import-JrT3xvdd.js';
+import { p as propsFactory, i as includes, a as isOn, e as eventName, g as genericComponent, b as isPrimitive, c as callEvent, d as getCurrentInstance, f as provideTheme, h as createLayout, u as useRtl, m as makeThemeProps, o as omit, j as makeLayoutProps, P as PREFERS_REDUCED_MOTION, k as acceleratedEasing, l as deceleratedEasing, s as standardEasing, n as provideDefaults, q as convertToUnit, r as destructComputed, t as isCssColor, v as isParsableColor, w as parseColor, x as getForeground, y as getCurrentInstanceName, z as isObject, A as onlyDefinedProps, S as SUPPORTS_INTERSECTION, B as clamp, C as consoleWarn, D as useProxiedModel, E as useToggleScope, F as useLayoutItem, G as makeLayoutItemProps, H as findChildrenWithProvide, I as wrapInArray, J as useTheme, K as useIcon, L as IconValue, M as flattenFragments, N as useResizeObserver, O as hasEvent, Q as IN_BROWSER, R as useLocale, T as EventProp, U as filterInputAttrs, V as matchesSelector, W as pick, X as useDisplay, Y as useGoTo, Z as focusableChildren, _ as makeDisplayProps, $ as consoleError, a0 as defineComponent, a1 as deprecate, a2 as getPropertyFromItem, a3 as focusChild, a4 as CircularBuffer, a5 as defer, a6 as templateRef, a7 as isClickInsideElement, a8 as getNextElement, a9 as debounce, aa as camelizeProps, ab as ensureValidVNode, ac as checkPrintable, ad as noop, ae as pickWithRest, af as provideLocale, ag as useDate, ah as keys, ai as getEventCoordinates, aj as HexToHSV, ak as HSVtoHex, al as HSLtoHSV, am as HSVtoHSL, an as RGBtoHSV, ao as HSVtoRGB, ap as has, aq as getDecimals, ar as createRange, as as keyValues, at as SUPPORTS_EYE_DROPPER, au as HSVtoCSS, av as RGBtoCSS, aw as getContrast, ax as escapeForRegex, ay as isComposingIgnoreKey, az as deepToRaw, aA as getObjectValueByPath, aB as isEmpty, aC as defineFunctionalComponent, aD as breakpoints, aE as createDateRange, aF as daysDiff, aG as humanReadableFileSize, aH as splitKeySequence, aI as splitKeyCombination, aJ as mergeDeep, aK as useLayout, aL as extractNumber, aM as VuetifyLayoutKey, aN as refElement, aO as SUPPORTS_MATCH_MEDIA, aP as renderSlot, aQ as VClassIcon, aR as VComponentIcon, aS as VLigatureIcon, aT as VSvgIcon } from './hotkey-parsing-Bh0t8S-F.js';
+import AppPage from './__federation_expose_AppPage-FZcwPEXM.js';
+
+true              &&(function polyfill() {
+  const relList = document.createElement("link").relList;
+  if (relList && relList.supports && relList.supports("modulepreload")) {
+    return;
+  }
+  for (const link of document.querySelectorAll('link[rel="modulepreload"]')) {
+    processPreload(link);
+  }
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type !== "childList") {
+        continue;
+      }
+      for (const node of mutation.addedNodes) {
+        if (node.tagName === "LINK" && node.rel === "modulepreload")
+          processPreload(node);
+      }
+    }
+  }).observe(document, { childList: true, subtree: true });
+  function getFetchOpts(link) {
+    const fetchOpts = {};
+    if (link.integrity) fetchOpts.integrity = link.integrity;
+    if (link.referrerPolicy) fetchOpts.referrerPolicy = link.referrerPolicy;
+    if (link.crossOrigin === "use-credentials")
+      fetchOpts.credentials = "include";
+    else if (link.crossOrigin === "anonymous") fetchOpts.credentials = "omit";
+    else fetchOpts.credentials = "same-origin";
+    return fetchOpts;
+  }
+  function processPreload(link) {
+    if (link.ep)
+      return;
+    link.ep = true;
+    const fetchOpts = getFetchOpts(link);
+    fetch(link.href, fetchOpts);
+  }
+}());
 
 // Utilities
 // TODO: import from vue once upstream PR is merged

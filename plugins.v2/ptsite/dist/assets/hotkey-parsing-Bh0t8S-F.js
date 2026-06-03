@@ -1,4 +1,4 @@
-import { importShared } from './__federation_fn_import-6gF0Hpk-.js';
+import { importShared } from './__federation_fn_import-JrT3xvdd.js';
 
 // Types
 // eslint-disable-line vue/prefer-import-from-vue

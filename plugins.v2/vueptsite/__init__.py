@@ -16,7 +16,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.2"
+    plugin_version = "1.0.3"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -29,6 +29,8 @@ class VuePtSite(_PluginBase):
     _auto_refresh = False
     _refresh_interval = 60
     _cron = "0 */2 * * *"
+    _logs: List[Dict[str, Any]] = []
+    _max_logs = 200
 
     def __init__(self):
         super().__init__()
@@ -95,6 +97,20 @@ class VuePtSite(_PluginBase):
                 "summary": "刷新所有站点",
             },
             {
+                "path": "/run-now",
+                "endpoint": self._run_now,
+                "methods": ["POST"],
+                "auth": "bear",
+                "summary": "立即运行一次",
+            },
+            {
+                "path": "/logs",
+                "endpoint": self._get_logs,
+                "methods": ["GET"],
+                "auth": "bear",
+                "summary": "获取运行日志",
+            },
+            {
                 "path": "/config",
                 "endpoint": self._get_config,
                 "methods": ["GET"],
@@ -143,6 +159,40 @@ class VuePtSite(_PluginBase):
         except Exception:
             pass
 
+    def _add_log(self, level: str, message: str):
+        """添加日志"""
+        from datetime import datetime
+        log_entry = {
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "level": level,
+            "message": message,
+        }
+        self._logs.insert(0, log_entry)
+        if len(self._logs) > self._max_logs:
+            self._logs = self._logs[:self._max_logs]
+        if level == "ERROR":
+            logger.error(f"[{self.plugin_name}] {message}")
+        elif level == "WARNING":
+            logger.warning(f"[{self.plugin_name}] {message}")
+        else:
+            logger.info(f"[{self.plugin_name}] {message}")
+
+    def _run_now(self, payload: dict = None) -> Dict[str, Any]:
+        """立即运行一次"""
+        self._add_log("INFO", "开始立即运行...")
+        try:
+            result = self._get_sites()
+            site_count = result.get("data", {}).get("total", 0)
+            self._add_log("INFO", f"运行完成，获取到 {site_count} 个站点")
+            return {"success": True, "message": f"运行完成，获取到 {site_count} 个站点", "data": result.get("data", {})}
+        except Exception as e:
+            self._add_log("ERROR", f"运行失败: {e}")
+            return {"success": False, "message": f"运行失败: {e}"}
+
+    def _get_logs(self, payload: dict = None) -> Dict[str, Any]:
+        """获取运行日志"""
+        return {"success": True, "data": {"logs": self._logs}}
+
     def _get_config(self) -> Dict[str, Any]:
         """获取配置"""
         try:
@@ -181,33 +231,43 @@ class VuePtSite(_PluginBase):
 
     def _get_sites(self) -> Dict[str, Any]:
         """获取站点列表"""
+        self._add_log("INFO", "开始获取站点列表...")
+
         try:
             all_sites = self.siteoper.list() or []
-            logger.info(f"[{self.plugin_name}] 获取到 {len(all_sites)} 个站点")
+            self._add_log("INFO", f"从 SiteOper 获取到 {len(all_sites)} 个站点")
         except Exception as e:
-            logger.error(f"[{self.plugin_name}] 获取站点列表失败: {e}")
+            self._add_log("ERROR", f"获取站点列表失败: {e}")
             all_sites = []
 
         sites = []
-        for site in all_sites:
+        for idx, site in enumerate(all_sites, 1):
             site_id = getattr(site, "id", None)
-            if self._display_sites and str(site_id) not in self._display_sites:
-                continue
-
             site_name = getattr(site, "name", "未知")
             site_domain = getattr(site, "domain", "")
+            self._add_log("INFO", f"[{idx}/{len(all_sites)}] 处理站点: {site_name} (ID={site_id}, Domain={site_domain})")
+
+            if self._display_sites and str(site_id) not in self._display_sites:
+                self._add_log("INFO", f"  -> 跳过 (不在显示列表中)")
+                continue
+
             site_cookie = getattr(site, "cookie", "")
             site_note_raw = getattr(site, "note", None) or "{}"
+            self._add_log("INFO", f"  -> Cookie: {'有' if site_cookie else '无'}, Note长度: {len(str(site_note_raw))}")
 
             note = {}
             try:
                 note = json.loads(site_note_raw) if isinstance(site_note_raw, str) else (site_note_raw or {})
+                self._add_log("INFO", f"  -> Note keys: {list(note.keys()) if isinstance(note, dict) else '非字典'}")
             except Exception as e:
-                logger.debug(f"[{self.plugin_name}] 解析站点 {site_name} note 失败: {e}")
+                self._add_log("WARNING", f"  -> 解析 note 失败: {e}")
 
             user_info = note.get("user_info", note.get("userInfo", {}))
             if not isinstance(user_info, dict):
                 user_info = {}
+                self._add_log("INFO", f"  -> 未找到 user_info 数据")
+            else:
+                self._add_log("INFO", f"  -> user_info keys: {list(user_info.keys())}")
 
             sites.append(
                 {
@@ -228,7 +288,9 @@ class VuePtSite(_PluginBase):
                     "has_cookie": bool(site_cookie),
                 }
             )
-        logger.info(f"[{self.plugin_name}] 返回 {len(sites)} 个站点")
+            self._add_log("INFO", f"  -> 添加成功: {site_name}")
+
+        self._add_log("INFO", f"获取完成，共 {len(sites)} 个站点")
         return {"success": True, "data": {"sites": sites, "total": len(sites)}}
 
     def _refresh_site(self, payload: dict) -> Dict[str, Any]:

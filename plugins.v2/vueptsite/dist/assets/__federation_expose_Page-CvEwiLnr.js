@@ -1,5 +1,5 @@
 import { importShared } from './__federation_fn_import-JrT3xvdd.js';
-import _sfc_main$1 from './__federation_expose_Config-1x6xUPT3.js';
+import Config from './__federation_expose_Config-DH3LzImJ.js';
 import { _ as _export_sfc } from './_plugin-vue_export-helper-pcqpp-6-.js';
 
 const {resolveComponent:_resolveComponent,createVNode:_createVNode,createTextVNode:_createTextVNode,withCtx:_withCtx,renderList:_renderList,Fragment:_Fragment,openBlock:_openBlock,createElementBlock:_createElementBlock,toDisplayString:_toDisplayString,createElementVNode:_createElementVNode,createCommentVNode:_createCommentVNode,createBlock:_createBlock} = await importShared('vue');
@@ -148,7 +148,7 @@ return (_ctx, _cache) => {
         "max-width": "600"
       }, {
         default: _withCtx(() => [
-          _createVNode(_sfc_main$1, {
+          _createVNode(Config, {
             api: __props.api,
             "initial-config": config.value,
             onClose: _cache[2] || (_cache[2] = $event => (showConfig.value = false))

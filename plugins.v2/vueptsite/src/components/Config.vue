@@ -67,6 +67,67 @@
           </v-col>
         </v-row>
       </v-form>
+
+      <!-- 立即运行 -->
+      <v-divider class="my-4" />
+      <div class="d-flex align-center mb-2">
+        <v-icon icon="mdi-play-circle" size="18" class="mr-2" color="success" />
+        <span class="text-subtitle-2">立即运行</span>
+        <v-spacer />
+        <v-btn
+          color="success"
+          variant="tonal"
+          size="small"
+          :loading="running"
+          @click="runNow"
+        >
+          <v-icon start icon="mdi-play" />
+          运行一次
+        </v-btn>
+      </div>
+
+      <!-- 日志输出 -->
+      <v-divider class="my-4" />
+      <div class="d-flex align-center mb-2">
+        <v-icon icon="mdi-text-box-outline" size="18" class="mr-2" />
+        <span class="text-subtitle-2">运行日志</span>
+        <v-spacer />
+        <v-btn
+          size="x-small"
+          variant="text"
+          icon="mdi-refresh"
+          :loading="loadingLogs"
+          @click="loadLogs"
+        />
+        <v-btn
+          size="x-small"
+          variant="text"
+          icon="mdi-delete-outline"
+          @click="clearLogs"
+        />
+      </div>
+      <div class="log-container" ref="logContainer">
+        <div v-if="logs.length === 0" class="text-center text-grey py-4">
+          暂无日志
+        </div>
+        <div
+          v-for="(log, idx) in logs"
+          :key="idx"
+          class="log-line"
+          :class="`log-line--${log.level.toLowerCase()}`"
+        >
+          <span class="log-time">{{ log.time }}</span>
+          <v-chip
+            size="x-small"
+            :color="logColor(log.level)"
+            variant="tonal"
+            class="log-level"
+          >
+            {{ log.level }}
+          </v-chip>
+          <span class="log-message">{{ log.message }}</span>
+        </div>
+      </div>
     </v-card-text>
 
     <v-card-actions>
@@ -78,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 
 const props = defineProps({
   api: { type: Object, default: () => ({}) },
@@ -89,7 +150,11 @@ const emit = defineEmits(['switch', 'close'])
 
 const valid = ref(false)
 const saving = ref(false)
+const running = ref(false)
+const loadingLogs = ref(false)
 const siteOptions = ref([])
+const logs = ref([])
+const logContainer = ref(null)
 
 const form = reactive({
   enabled: false,
@@ -106,6 +171,11 @@ const intervalOptions = [
   { title: '360 分钟', value: 360 },
 ]
 
+function logColor(level) {
+  const colors = { INFO: 'info', WARNING: 'warning', ERROR: 'error', DEBUG: 'grey' }
+  return colors[level] || 'grey'
+}
+
 onMounted(async () => {
   if (props.initialConfig) {
     Object.assign(form, {
@@ -117,6 +187,7 @@ onMounted(async () => {
     })
     siteOptions.value = props.initialConfig.site_options ?? []
   }
+  await loadLogs()
 })
 
 async function saveConfig() {
@@ -130,4 +201,87 @@ async function saveConfig() {
     saving.value = false
   }
 }
+
+async function runNow() {
+  running.value = true
+  try {
+    await props.api.post('plugin/VuePtSite/run-now')
+    await loadLogs()
+  } catch (error) {
+    console.error('[VuePtSite] Failed to run:', error)
+  } finally {
+    running.value = false
+  }
+}
+
+async function loadLogs() {
+  loadingLogs.value = true
+  try {
+    const result = await props.api.get('plugin/VuePtSite/logs')
+    const data = result?.data
+    if (data && data.success !== false) {
+      logs.value = data.data?.logs || []
+      await nextTick()
+      if (logContainer.value) {
+        logContainer.value.scrollTop = 0
+      }
+    }
+  } catch (error) {
+    console.error('[VuePtSite] Failed to load logs:', error)
+  } finally {
+    loadingLogs.value = false
+  }
+}
+
+function clearLogs() {
+  logs.value = []
+}
 </script>
+
+<style scoped>
+.log-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.log-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+.log-line:last-child {
+  border-bottom: none;
+}
+
+.log-line--error {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.log-line--warning {
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.log-time {
+  color: rgba(var(--v-theme-on-surface), 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.log-level {
+  flex-shrink: 0;
+  font-size: 0.65rem !important;
+}
+
+.log-message {
+  color: rgba(var(--v-theme-on-surface), 0.8);
+  word-break: break-all;
+}
+</style>

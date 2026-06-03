@@ -16,7 +16,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.1"
+    plugin_version = "1.0.2"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -145,9 +145,12 @@ class VuePtSite(_PluginBase):
 
     def _get_config(self) -> Dict[str, Any]:
         """获取配置"""
-        all_sites = self.siteoper.list_sites() or []
+        try:
+            all_sites = self.siteoper.list() or []
+        except Exception:
+            all_sites = []
         site_options = [
-            {"title": site.name, "value": str(site.id)}
+            {"title": getattr(site, "name", str(getattr(site, "id", ""))), "value": str(getattr(site, "id", ""))}
             for site in all_sites
         ]
         return {
@@ -178,35 +181,54 @@ class VuePtSite(_PluginBase):
 
     def _get_sites(self) -> Dict[str, Any]:
         """获取站点列表"""
-        all_sites = self.siteoper.list_sites() or []
+        try:
+            all_sites = self.siteoper.list() or []
+            logger.info(f"[{self.plugin_name}] 获取到 {len(all_sites)} 个站点")
+        except Exception as e:
+            logger.error(f"[{self.plugin_name}] 获取站点列表失败: {e}")
+            all_sites = []
+
         sites = []
         for site in all_sites:
-            if self._display_sites and str(site.id) not in self._display_sites:
+            site_id = getattr(site, "id", None)
+            if self._display_sites and str(site_id) not in self._display_sites:
                 continue
+
+            site_name = getattr(site, "name", "未知")
+            site_domain = getattr(site, "domain", "")
+            site_cookie = getattr(site, "cookie", "")
+            site_note_raw = getattr(site, "note", None) or "{}"
+
             note = {}
             try:
-                note = json.loads(site.note) if site.note else {}
-            except Exception:
-                pass
-            user_info = note.get("user_info", {})
+                note = json.loads(site_note_raw) if isinstance(site_note_raw, str) else (site_note_raw or {})
+            except Exception as e:
+                logger.debug(f"[{self.plugin_name}] 解析站点 {site_name} note 失败: {e}")
+
+            user_info = note.get("user_info", note.get("userInfo", {}))
+            if not isinstance(user_info, dict):
+                user_info = {}
+
             sites.append(
                 {
-                    "id": str(site.id),
-                    "name": site.name,
-                    "url": site.domain,
-                    "username": user_info.get("username", ""),
-                    "level": user_info.get("level", ""),
-                    "upload": user_info.get("upload", 0),
-                    "download": user_info.get("download", 0),
-                    "ratio": user_info.get("ratio", "0.00"),
-                    "bonus": user_info.get("bonus", 0),
-                    "seeding": user_info.get("seeding", 0),
-                    "seeding_time": user_info.get("seeding_time", ""),
-                    "hr": user_info.get("hr", 0),
-                    "join_time": user_info.get("join_time", ""),
-                    "last_active": user_info.get("last_active", ""),
+                    "id": str(site_id),
+                    "name": site_name,
+                    "url": site_domain,
+                    "username": user_info.get("username", user_info.get("user_name", "")),
+                    "level": str(user_info.get("level", "")),
+                    "upload": int(user_info.get("upload", 0) or 0),
+                    "download": int(user_info.get("download", 0) or 0),
+                    "ratio": str(user_info.get("ratio", "0.00")),
+                    "bonus": int(user_info.get("bonus", 0) or 0),
+                    "seeding": int(user_info.get("seeding", 0) or 0),
+                    "seeding_time": str(user_info.get("seeding_time", "")),
+                    "hr": int(user_info.get("hr", 0) or 0),
+                    "join_time": str(user_info.get("join_time", "")),
+                    "last_active": str(user_info.get("last_active", "")),
+                    "has_cookie": bool(site_cookie),
                 }
             )
+        logger.info(f"[{self.plugin_name}] 返回 {len(sites)} 个站点")
         return {"success": True, "data": {"sites": sites, "total": len(sites)}}
 
     def _refresh_site(self, payload: dict) -> Dict[str, Any]:
@@ -214,29 +236,39 @@ class VuePtSite(_PluginBase):
         site_id = payload.get("site_id")
         if not site_id:
             return {"success": False, "message": "缺少站点 ID"}
-        site = self.siteoper.get(int(site_id))
+        try:
+            site = self.siteoper.get(int(site_id))
+        except Exception as e:
+            return {"success": False, "message": f"获取站点失败: {e}"}
         if not site:
             return {"success": False, "message": "未找到站点"}
+
+        site_name = getattr(site, "name", "未知")
+        site_note_raw = getattr(site, "note", None) or "{}"
+        note = {}
         try:
-            note = json.loads(site.note) if site.note else {}
+            note = json.loads(site_note_raw) if isinstance(site_note_raw, str) else (site_note_raw or {})
         except Exception:
-            note = {}
-        user_info = note.get("user_info", {})
+            pass
+        user_info = note.get("user_info", note.get("userInfo", {}))
+        if not isinstance(user_info, dict):
+            user_info = {}
+
         return {
             "success": True,
-            "message": f"站点 {site.name} 刷新成功",
+            "message": f"站点 {site_name} 刷新成功",
             "data": {
-                "id": str(site.id),
-                "name": site.name,
-                "username": user_info.get("username", ""),
-                "level": user_info.get("level", ""),
-                "upload": user_info.get("upload", 0),
-                "download": user_info.get("download", 0),
-                "ratio": user_info.get("ratio", "0.00"),
-                "bonus": user_info.get("bonus", 0),
-                "seeding": user_info.get("seeding", 0),
-                "seeding_time": user_info.get("seeding_time", ""),
-                "hr": user_info.get("hr", 0),
+                "id": str(site_id),
+                "name": site_name,
+                "username": user_info.get("username", user_info.get("user_name", "")),
+                "level": str(user_info.get("level", "")),
+                "upload": int(user_info.get("upload", 0) or 0),
+                "download": int(user_info.get("download", 0) or 0),
+                "ratio": str(user_info.get("ratio", "0.00")),
+                "bonus": int(user_info.get("bonus", 0) or 0),
+                "seeding": int(user_info.get("seeding", 0) or 0),
+                "seeding_time": str(user_info.get("seeding_time", "")),
+                "hr": int(user_info.get("hr", 0) or 0),
             },
         }
 

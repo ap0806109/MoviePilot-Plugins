@@ -209,9 +209,13 @@ async function loadSites() {
   loading.value = true
   try {
     const result = await props.api.get(`plugin/${props.pluginId}/sites`)
+    console.log('[VuePtSite] API response:', result)
     const data = result?.data
     if (data && data.success !== false) {
       sites.value = data.data?.sites || []
+      console.log('[VuePtSite] Loaded sites:', sites.value.length)
+    } else {
+      console.warn('[VuePtSite] API returned success=false:', data)
     }
   } catch (error) {
     console.error('[VuePtSite] Failed to load sites:', error)

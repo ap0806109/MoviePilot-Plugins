@@ -100,9 +100,13 @@ async function loadSites() {
   loading.value = true;
   try {
     const result = await props.api.get(`plugin/${props.pluginId}/sites`);
+    console.log('[VuePtSite] API response:', result);
     const data = result?.data;
     if (data && data.success !== false) {
       sites.value = data.data?.sites || [];
+      console.log('[VuePtSite] Loaded sites:', sites.value.length);
+    } else {
+      console.warn('[VuePtSite] API returned success=false:', data);
     }
   } catch (error) {
     console.error('[VuePtSite] Failed to load sites:', error);
@@ -466,6 +470,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-604c4224"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-286823b2"]]);
 
 export { AppPage as default };

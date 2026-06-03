@@ -1,0 +1,17 @@
+﻿{
+  "PTSite": {
+    "name": "PT Site",
+    "description": "PT 站點用戶信息查詢工具，支持站點列表管理、用戶數據統計、手動/自動刷新",
+    "labels": "PT,站點，統計",
+    "version": "1.0.1",
+    "icon": "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png",
+    "author": "ap0806109",
+    "system_version": ">=2.12.0",
+    "level": 1,
+    "v2": true,
+    "history": {
+      "v1.0.1": "Vue 前端框架，支持站點列表展示",
+      "v1.0.0": "初始版本，支持站點用戶信息查詢"
+    }
+  }
+}

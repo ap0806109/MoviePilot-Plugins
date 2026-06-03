@@ -16,7 +16,7 @@ class PTSite(_PluginBase):
     plugin_name = "PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.5"
+    plugin_version = "1.0.6"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "ptsite_"
@@ -103,78 +103,45 @@ class PTSite(_PluginBase):
             },
         ]
 
-    def get_form(self) -> Tuple[List[dict], Dict[str, Any]]:
-        """配置页面"""
-        return [
-            {
-                "component": "VForm",
-                "content": [
-                    {
-                        "component": "VRow",
-                        "content": [
-                            {
-                                "component": "VCol",
-                                "props": {"cols": 12, "md": 6},
-                                "content": [
-                                    {
-                                        "component": "VSwitch",
-                                        "props": {
-                                            "model": "enabled",
-                                            "label": "启用插件",
-                                        },
-                                    }
-                                ],
-                            },
-                            {
-                                "component": "VCol",
-                                "props": {"cols": 12, "md": 6},
-                                "content": [
-                                    {
-                                        "component": "VSwitch",
-                                        "props": {
-                                            "model": "auto_refresh",
-                                            "label": "自动刷新",
-                                        },
-                                    }
-                                ],
-                            },
-                        ],
-                    },
-                    {
-                        "component": "VRow",
-                        "content": [
-                            {
-                                "component": "VCol",
-                                "props": {"cols": 12, "md": 6},
-                                "content": [
-                                    {
-                                        "component": "VSelect",
-                                        "props": {
-                                            "model": "refresh_interval",
-                                            "label": "刷新间隔 (分钟)",
-                                            "items": [
-                                                {"title": "30 分钟", "value": 30},
-                                                {"title": "60 分钟", "value": 60},
-                                                {"title": "120 分钟", "value": 120},
-                                                {"title": "360 分钟", "value": 360},
-                                            ],
-                                        },
-                                    }
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            }
-        ], {
+    def get_form(self) -> Tuple[Optional[List[dict]], Dict[str, Any]]:
+        """配置页面 - Vue 插件返回 None"""
+        return None, {
             "enabled": False,
             "auto_refresh": False,
             "refresh_interval": 60,
         }
 
     def get_page(self) -> List[dict]:
-        """详情页 - 返回空，使用 Vue 联邦模式"""
-        return []
+        """详情页 - Vue 联邦模式"""
+        return [
+            {
+                "component": "VCard",
+                "props": {
+                    "variant": "outlined",
+                    "class": "ma-4",
+                },
+                "content": [
+                    {
+                        "component": "VCardTitle",
+                        "content": [
+                            {"component": "span", "props": {"class": "text-h6"}, "slot": "default"},
+                        ],
+                    },
+                    {
+                        "component": "VCardText",
+                        "content": [
+                            {
+                                "component": "PluginRemotePage",
+                                "props": {
+                                    "plugin_id": "PTSite",
+                                    "remote_name": "AppPage",
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+        ]
 
     def get_render_mode(self) -> Tuple[str, str]:
         """使用 Vue 联邦模式渲染"""

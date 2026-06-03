@@ -10,6 +10,8 @@ export default defineConfig({
       name: 'ptsite',
       filename: 'remoteEntry.js',
       exposes: {
+        './Page': './src/components/AppPage.vue',
+        './Config': './src/components/AppPage.vue',
         './AppPage': './src/components/AppPage.vue',
       },
       shared: {

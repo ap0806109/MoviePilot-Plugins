@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.5"
+    plugin_version = "1.0.6"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -302,6 +302,9 @@ class VuePtSite(_PluginBase):
             return None
 
         site_domain = site_domain.rstrip("/")
+        if not site_domain.startswith(("http://", "https://")):
+            site_domain = f"https://{site_domain}"
+
         user_url = f"{site_domain}/userdetails.php"
         self._add_log("INFO", f"  -> 请求: {user_url}")
 

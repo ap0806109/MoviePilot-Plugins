@@ -302,6 +302,9 @@ class VuePtSite(_PluginBase):
             return None
 
         site_domain = site_domain.rstrip("/")
+        if not site_domain.startswith(("http://", "https://")):
+            site_domain = f"https://{site_domain}"
+
         user_url = f"{site_domain}/userdetails.php"
         self._add_log("INFO", f"  -> 请求: {user_url}")
 

@@ -73,8 +73,18 @@
       >
         <div class="vpts-card__header">
           <div class="vpts-card__name">
-            <v-icon icon="mdi-server" size="18" color="primary" class="mr-2" />
-            {{ site.name }}
+            <img
+              v-if="site.icon"
+              :src="site.icon"
+              class="vpts-card__icon"
+              :alt="site.name"
+              @error="(e) => e.target.style.display='none'"
+            />
+            <v-icon v-else icon="mdi-server" size="18" color="primary" />
+            <span class="ml-2">{{ site.name }}</span>
+            <v-chip v-if="site.error" size="x-small" color="error" variant="tonal" class="ml-2">
+              {{ site.error }}
+            </v-chip>
           </div>
           <v-btn
             size="x-small"
@@ -471,6 +481,13 @@ function formatNumber(num) {
   font-weight: 600;
   display: flex;
   align-items: center;
+}
+
+.vpts-card__icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .vpts-card__body {

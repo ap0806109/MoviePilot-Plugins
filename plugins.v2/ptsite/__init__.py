@@ -16,7 +16,7 @@ class PTSite(_PluginBase):
     plugin_name = "PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.6"
+    plugin_version = "1.0.7"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "ptsite_"
@@ -24,7 +24,7 @@ class PTSite(_PluginBase):
     auth_level = 1
 
     _enabled = False
-    _sites: List[Dict] = []
+    _display_sites: List[str] = []  # 显示哪些站点的 ID
     _auto_refresh = False
     _refresh_interval = 60
 
@@ -32,13 +32,18 @@ class PTSite(_PluginBase):
         """初始化插件"""
         config = config or {}
         self._enabled = bool(config.get("enabled"))
+        self._display_sites = config.get("display_sites", [])
         self._auto_refresh = bool(config.get("auto_refresh"))
         self._refresh_interval = int(config.get("refresh_interval", 60))
         
+        # 从 MoviePilot 站点管理读取数据
         site_oper = SiteOper()
         all_sites = site_oper.list_sites()
         self._sites = []
         for site in all_sites:
+            # 如果配置了显示站点列表，只加载选中的站点
+            if self._display_sites and str(site.id) not in self._display_sites:
+                continue
             site_dict = {
                 "id": str(site.id),
                 "name": site.name,
@@ -104,9 +109,96 @@ class PTSite(_PluginBase):
         ]
 
     def get_form(self) -> Tuple[Optional[List[dict]], Dict[str, Any]]:
-        """配置页面 - Vue 插件返回 None"""
-        return None, {
+        """配置页面"""
+        # 获取所有站点用于配置选项
+        site_oper = SiteOper()
+        all_sites = site_oper.list_sites()
+        site_options = [
+            {"title": site.name, "value": str(site.id)}
+            for site in all_sites
+        ]
+        
+        return [
+            {
+                "component": "VForm",
+                "content": [
+                    {
+                        "component": "VRow",
+                        "content": [
+                            {
+                                "component": "VCol",
+                                "props": {"cols": 12, "md": 6},
+                                "content": [
+                                    {
+                                        "component": "VSwitch",
+                                        "props": {
+                                            "model": "enabled",
+                                            "label": "启用插件",
+                                        },
+                                    }
+                                ],
+                            },
+                            {
+                                "component": "VCol",
+                                "props": {"cols": 12, "md": 6},
+                                "content": [
+                                    {
+                                        "component": "VSwitch",
+                                        "props": {
+                                            "model": "auto_refresh",
+                                            "label": "自动刷新",
+                                        },
+                                    }
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "component": "VRow",
+                        "content": [
+                            {
+                                "component": "VCol",
+                                "props": {"cols": 12, "md": 6},
+                                "content": [
+                                    {
+                                        "component": "VSelect",
+                                        "props": {
+                                            "model": "display_sites",
+                                            "label": "显示站点",
+                                            "items": site_options,
+                                            "multiple": True,
+                                            "chips": True,
+                                            "clearable": True,
+                                        },
+                                    }
+                                ],
+                            },
+                            {
+                                "component": "VCol",
+                                "props": {"cols": 12, "md": 6},
+                                "content": [
+                                    {
+                                        "component": "VSelect",
+                                        "props": {
+                                            "model": "refresh_interval",
+                                            "label": "刷新间隔 (分钟)",
+                                            "items": [
+                                                {"title": "30 分钟", "value": 30},
+                                                {"title": "60 分钟", "value": 60},
+                                                {"title": "120 分钟", "value": 120},
+                                                {"title": "360 分钟", "value": 360},
+                                            ],
+                                        },
+                                    }
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            }
+        ], {
             "enabled": False,
+            "display_sites": [],
             "auto_refresh": False,
             "refresh_interval": 60,
         }

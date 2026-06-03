@@ -64,9 +64,9 @@ class VuePtSite(_PluginBase):
                 "nav_key": "main",
                 "title": "PT Site",
                 "icon": "mdi-web",
-                "section": "organize",
+                "section": "discovery",
                 "permission": "manage",
-                "order": 101,
+                "order": 19,
             },
         ]
 

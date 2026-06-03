@@ -16,9 +16,10 @@ class PTSite(_PluginBase):
     plugin_name = "PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.7"
+    plugin_version = "1.0.8"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
+    plugin_id = "PTSite"
     plugin_config_prefix = "ptsite_"
     plugin_order = 100
     auth_level = 1
@@ -207,31 +208,11 @@ class PTSite(_PluginBase):
         """详情页 - Vue 联邦模式"""
         return [
             {
-                "component": "VCard",
+                "component": "PluginRemotePage",
                 "props": {
-                    "variant": "outlined",
-                    "class": "ma-4",
+                    "plugin_id": self.plugin_id,
+                    "remote_name": "AppPage",
                 },
-                "content": [
-                    {
-                        "component": "VCardTitle",
-                        "content": [
-                            {"component": "span", "props": {"class": "text-h6"}, "slot": "default"},
-                        ],
-                    },
-                    {
-                        "component": "VCardText",
-                        "content": [
-                            {
-                                "component": "PluginRemotePage",
-                                "props": {
-                                    "plugin_id": "PTSite",
-                                    "remote_name": "AppPage",
-                                },
-                            },
-                        ],
-                    },
-                ],
             },
         ]
 

@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.8"
+    plugin_version = "1.0.9"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -218,6 +218,8 @@ class VuePtSite(_PluginBase):
                 return None
 
             self._add_log("INFO", f"  -> 响应成功: HTTP {response.status_code}, 内容长度: {len(response.text)}")
+            # 保存 HTML 用于调试
+            self._add_log("INFO", f"  -> HTML 片段: {response.text[:3000]}")
             return self._parse_user_page(response.text, base_url)
 
         except Exception as e:
@@ -284,13 +286,15 @@ class VuePtSite(_PluginBase):
             return {}
 
         # 等级
-        for sel in ["span#info_block .level", "td.text span.level"]:
+        for sel in ["span#info_block .level", "td.text span.level", "span[style*='color']"]:
             elem = soup.select_one(sel)
             if elem:
-                user_info["level"] = elem.get_text(strip=True)
-                break
+                text = elem.get_text(strip=True)
+                if text and len(text) < 30:
+                    user_info["level"] = text
+                    break
 
-        # 上传/下载/分享率/魔力值 - 通过 table 行解析
+        # 策略1: 通过 table 行解析
         for tr in soup.find_all("tr"):
             cells = tr.find_all("td")
             if len(cells) < 2:
@@ -319,18 +323,56 @@ class VuePtSite(_PluginBase):
             elif "活躍" in label or "活跃" in label or "Last Active" in label:
                 user_info["last_active"] = value
 
-        # 如果 table 解析失败，尝试 span/div 解析
-        if "upload" not in user_info:
-            for span in soup.find_all(["span", "div"]):
+        # 策略2: 通过 id 或 class 查找
+        id_map = {
+            "upload": ["uup", "uploaded", "upload"],
+            "download": ["ddown", "downloaded", "download"],
+            "ratio": ["uratio", "ratio"],
+            "bonus": ["mbonus", "bonus"],
+            "seeding": ["useeding", "seeding"],
+        }
+        for field, ids in id_map.items():
+            if field not in user_info or user_info.get(field) == 0:
+                for id_name in ids:
+                    elem = soup.find(id=id_name)
+                    if elem:
+                        text = elem.get_text(strip=True)
+                        if field in ("upload", "download"):
+                            user_info[field] = self._parse_size(text)
+                        elif field == "ratio":
+                            user_info[field] = self._extract_ratio_value(text)
+                        else:
+                            user_info[field] = self._parse_number(text)
+                        break
+
+        # 策略3: 通过 span/div 的文本内容查找
+        if "upload" not in user_info or user_info.get("upload") == 0:
+            for span in soup.find_all(["span", "div", "td", "b"]):
                 text = span.get_text(strip=True)
-                if "上傳" in text or "Upload" in text:
-                    match = re.search(r"([\d.]+\s*[KMGT]?i?B)", text)
-                    if match:
-                        user_info["upload"] = self._parse_size(match.group(1))
-                elif "下載" in text or "Download" in text:
-                    match = re.search(r"([\d.]+\s*[KMGT]?i?B)", text)
-                    if match:
-                        user_info["download"] = self._parse_size(match.group(1))
+                # 上传
+                if re.search(r"[\d.]+\s*[KMGT]i?B", text):
+                    parent_text = span.parent.get_text(strip=True) if span.parent else ""
+                    if "上傳" in parent_text or "上传" in parent_text or "Upload" in parent_text:
+                        user_info["upload"] = self._parse_size(text)
+                    elif "下載" in parent_text or "下载" in parent_text or "Download" in parent_text:
+                        user_info["download"] = self._parse_size(text)
+
+        # 策略4: 查找包含数字的 td，根据位置推断
+        if "upload" not in user_info or user_info.get("upload") == 0:
+            all_tds = soup.find_all("td")
+            for i, td in enumerate(all_tds):
+                text = td.get_text(strip=True)
+                prev_td = all_tds[i-1] if i > 0 else None
+                if prev_td:
+                    prev_text = prev_td.get_text(strip=True)
+                    if "上傳" in prev_text or "Upload" in prev_text:
+                        user_info["upload"] = self._parse_size(text)
+                    elif "下載" in prev_text or "Download" in prev_text:
+                        user_info["download"] = self._parse_size(text)
+                    elif "分享率" in prev_text or "Ratio" in prev_text:
+                        user_info["ratio"] = self._extract_ratio_value(text)
+                    elif "魔力" in prev_text or "Bonus" in prev_text:
+                        user_info["bonus"] = self._parse_number(text)
 
         return user_info
 

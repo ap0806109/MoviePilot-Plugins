@@ -160,6 +160,10 @@
       <v-icon icon="mdi-web-off" size="64" color="grey-lighten-1" />
       <p class="vpts-empty__text">暂无站点数据</p>
       <p class="vpts-empty__hint">请先在 MoviePilot 站点管理中添加 PT 站点</p>
+      <v-btn color="primary" variant="tonal" @click="loadSites" class="mt-2">
+        <v-icon start icon="mdi-refresh" />
+        刷新数据
+      </v-btn>
     </div>
 
     <!-- Loading -->
@@ -202,23 +206,43 @@ const totalDownload = computed(() =>
 )
 
 onMounted(async () => {
+  console.log('[VuePtSite] Component mounted, pluginId:', props.pluginId)
   await loadSites()
 })
 
 async function loadSites() {
   loading.value = true
   try {
-    const result = await props.api.get(`plugin/${props.pluginId}/sites`)
-    console.log('[VuePtSite] API response:', result)
-    const data = result?.data
-    if (data && data.success !== false) {
-      sites.value = data.data?.sites || []
+    const apiUrl = `plugin/${props.pluginId}/sites`
+    console.log('[VuePtSite] Calling API:', apiUrl)
+    const result = await props.api.get(apiUrl)
+    console.log('[VuePtSite] Raw API result:', JSON.stringify(result))
+    
+    // Handle different response structures
+    let siteData = null
+    if (result?.data?.data?.sites) {
+      // Structure: { data: { success: true, data: { sites: [...] } } }
+      siteData = result.data.data.sites
+    } else if (result?.data?.sites) {
+      // Structure: { data: { sites: [...] } }
+      siteData = result.data.sites
+    } else if (result?.sites) {
+      // Structure: { sites: [...] }
+      siteData = result.sites
+    }
+    
+    console.log('[VuePtSite] Parsed site data:', siteData)
+    
+    if (siteData && Array.isArray(siteData)) {
+      sites.value = siteData
       console.log('[VuePtSite] Loaded sites:', sites.value.length)
     } else {
-      console.warn('[VuePtSite] API returned success=false:', data)
+      console.warn('[VuePtSite] No valid site data found in response')
+      sites.value = []
     }
   } catch (error) {
     console.error('[VuePtSite] Failed to load sites:', error)
+    sites.value = []
   } finally {
     loading.value = false
   }

@@ -93,23 +93,43 @@ const totalDownload = computed(() =>
 );
 
 onMounted(async () => {
+  console.log('[VuePtSite] Component mounted, pluginId:', props.pluginId);
   await loadSites();
 });
 
 async function loadSites() {
   loading.value = true;
   try {
-    const result = await props.api.get(`plugin/${props.pluginId}/sites`);
-    console.log('[VuePtSite] API response:', result);
-    const data = result?.data;
-    if (data && data.success !== false) {
-      sites.value = data.data?.sites || [];
+    const apiUrl = `plugin/${props.pluginId}/sites`;
+    console.log('[VuePtSite] Calling API:', apiUrl);
+    const result = await props.api.get(apiUrl);
+    console.log('[VuePtSite] Raw API result:', JSON.stringify(result));
+    
+    // Handle different response structures
+    let siteData = null;
+    if (result?.data?.data?.sites) {
+      // Structure: { data: { success: true, data: { sites: [...] } } }
+      siteData = result.data.data.sites;
+    } else if (result?.data?.sites) {
+      // Structure: { data: { sites: [...] } }
+      siteData = result.data.sites;
+    } else if (result?.sites) {
+      // Structure: { sites: [...] }
+      siteData = result.sites;
+    }
+    
+    console.log('[VuePtSite] Parsed site data:', siteData);
+    
+    if (siteData && Array.isArray(siteData)) {
+      sites.value = siteData;
       console.log('[VuePtSite] Loaded sites:', sites.value.length);
     } else {
-      console.warn('[VuePtSite] API returned success=false:', data);
+      console.warn('[VuePtSite] No valid site data found in response');
+      sites.value = [];
     }
   } catch (error) {
     console.error('[VuePtSite] Failed to load sites:', error);
+    sites.value = [];
   } finally {
     loading.value = false;
   }
@@ -453,8 +473,23 @@ return (_ctx, _cache) => {
               size: "64",
               color: "grey-lighten-1"
             }),
-            _cache[19] || (_cache[19] = _createElementVNode("p", { class: "vpts-empty__text" }, "暂无站点数据", -1)),
-            _cache[20] || (_cache[20] = _createElementVNode("p", { class: "vpts-empty__hint" }, "请先在 MoviePilot 站点管理中添加 PT 站点", -1))
+            _cache[20] || (_cache[20] = _createElementVNode("p", { class: "vpts-empty__text" }, "暂无站点数据", -1)),
+            _cache[21] || (_cache[21] = _createElementVNode("p", { class: "vpts-empty__hint" }, "请先在 MoviePilot 站点管理中添加 PT 站点", -1)),
+            _createVNode(_component_v_btn, {
+              color: "primary",
+              variant: "tonal",
+              onClick: loadSites,
+              class: "mt-2"
+            }, {
+              default: _withCtx(() => [
+                _createVNode(_component_v_icon, {
+                  start: "",
+                  icon: "mdi-refresh"
+                }),
+                _cache[19] || (_cache[19] = _createTextVNode(" 刷新数据 ", -1))
+              ]),
+              _: 1
+            })
           ]))
         : _createCommentVNode("", true),
     (loading.value)
@@ -470,6 +505,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-286823b2"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-417f5810"]]);
 
 export { AppPage as default };

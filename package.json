@@ -1,5 +1,5 @@
 {
-  "PTSite": {
+  "PTsite": {
     "name": "PT Site",
     "description": "PT 站點用戶信息查詢工具，支持站點列表管理、用戶數據統計、手動/自動刷新",
     "labels": "PT,站點，統計",

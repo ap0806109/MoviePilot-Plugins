@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.9"
+    plugin_version = "1.0.10"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -270,7 +270,7 @@ class VuePtSite(_PluginBase):
             return None
 
     def _parse_nexusphp(self, soup) -> Dict[str, Any]:
-        """解析 NexusPHP 格式"""
+        """解析 NexusPHP 格式 - 支持 info_block 内联格式"""
         user_info = {}
 
         # 用户名
@@ -294,85 +294,80 @@ class VuePtSite(_PluginBase):
                     user_info["level"] = text
                     break
 
-        # 策略1: 通过 table 行解析
-        for tr in soup.find_all("tr"):
-            cells = tr.find_all("td")
-            if len(cells) < 2:
-                continue
-            label = cells[0].get_text(strip=True)
-            value = cells[1].get_text(strip=True)
+        # 获取 #info_block 的完整文本
+        info_block = soup.find(id="info_block")
+        if info_block:
+            info_text = info_block.get_text(" ", strip=True)
+            self._add_log("INFO", f"  -> info_block 文本: {info_text[:500]}")
 
-            if "上傳" in label or "上传" in label or "Upload" in label:
-                user_info["upload"] = self._parse_size(value)
-            elif "下載" in label or "下载" in label or "Download" in label:
-                user_info["download"] = self._parse_size(value)
-            elif "分享率" in label or "Ratio" in label:
-                user_info["ratio"] = self._extract_ratio_value(value)
-            elif "魔力" in label or "Bonus" in label or "积分" in label:
-                user_info["bonus"] = self._parse_number(value)
-            elif "做種" in label or "做种" in label or "Seeding" in label:
-                match = re.search(r"(\d+)", value)
-                user_info["seeding"] = int(match.group(1)) if match else 0
-            elif "做種時間" in label or "做种时间" in label or "Seeding Time" in label:
-                user_info["seeding_time"] = value
-            elif "H&R" in label or "Hit&Run" in label:
-                match = re.search(r"(\d+)", value)
-                user_info["hr"] = int(match.group(1)) if match else 0
-            elif "註冊" in label or "注册" in label or "Join" in label:
-                user_info["join_time"] = value
-            elif "活躍" in label or "活跃" in label or "Last Active" in label:
-                user_info["last_active"] = value
+            # 魔力值: 983,260.2
+            match = re.search(r"魔力值[^:：]*[：:]\s*([\d,\.]+)", info_text)
+            if match:
+                user_info["bonus"] = self._parse_number(match.group(1))
 
-        # 策略2: 通过 id 或 class 查找
-        id_map = {
-            "upload": ["uup", "uploaded", "upload"],
-            "download": ["ddown", "downloaded", "download"],
-            "ratio": ["uratio", "ratio"],
-            "bonus": ["mbonus", "bonus"],
-            "seeding": ["useeding", "seeding"],
-        }
-        for field, ids in id_map.items():
-            if field not in user_info or user_info.get(field) == 0:
-                for id_name in ids:
-                    elem = soup.find(id=id_name)
-                    if elem:
-                        text = elem.get_text(strip=True)
-                        if field in ("upload", "download"):
-                            user_info[field] = self._parse_size(text)
-                        elif field == "ratio":
-                            user_info[field] = self._extract_ratio_value(text)
-                        else:
-                            user_info[field] = self._parse_number(text)
-                        break
+            # 分享率：6.317
+            match = re.search(r"分享率[：:\s]*([\d.]+|Inf|∞)", info_text)
+            if match:
+                user_info["ratio"] = match.group(1)
 
-        # 策略3: 通过 span/div 的文本内容查找
-        if "upload" not in user_info or user_info.get("upload") == 0:
-            for span in soup.find_all(["span", "div", "td", "b"]):
-                text = span.get_text(strip=True)
-                # 上传
-                if re.search(r"[\d.]+\s*[KMGT]i?B", text):
-                    parent_text = span.parent.get_text(strip=True) if span.parent else ""
-                    if "上傳" in parent_text or "上传" in parent_text or "Upload" in parent_text:
-                        user_info["upload"] = self._parse_size(text)
-                    elif "下載" in parent_text or "下载" in parent_text or "Download" in parent_text:
-                        user_info["download"] = self._parse_size(text)
+            # 上傳量：4.636 TB
+            match = re.search(r"上傳量[：:\s]*([\d.]+\s*[KMGT]i?B)", info_text)
+            if match:
+                user_info["upload"] = self._parse_size(match.group(1))
 
-        # 策略4: 查找包含数字的 td，根据位置推断
-        if "upload" not in user_info or user_info.get("upload") == 0:
-            all_tds = soup.find_all("td")
-            for i, td in enumerate(all_tds):
-                text = td.get_text(strip=True)
-                prev_td = all_tds[i-1] if i > 0 else None
-                if prev_td:
-                    prev_text = prev_td.get_text(strip=True)
-                    if "上傳" in prev_text or "Upload" in prev_text:
-                        user_info["upload"] = self._parse_size(text)
-                    elif "下載" in prev_text or "Download" in prev_text:
-                        user_info["download"] = self._parse_size(text)
-                    elif "分享率" in prev_text or "Ratio" in prev_text:
-                        user_info["ratio"] = self._extract_ratio_value(text)
-                    elif "魔力" in prev_text or "Bonus" in prev_text:
-                        user_info["bonus"] = self._parse_number(text)
+            # 下載量：751.60 GB
+            match = re.search(r"下載量[：:\s]*([\d.]+\s*[KMGT]i?B)", info_text)
+            if match:
+                user_info["download"] = self._parse_size(match.group(1))
+
+            # 當前活動：做種 1 下載 0
+            seeding_match = re.search(r"當前做種.*?(\d+)", info_text)
+            if seeding_match:
+                user_info["seeding"] = int(seeding_match.group(1))
+
+            # H&R: 0/0/20
+            match = re.search(r"H&R.*?\[(\d+)/(\d+)/(\d+)\]", info_text)
+            if match:
+                user_info["hr"] = int(match.group(2))
+
+        # 表格解析（备用）
+        if not user_info.get("upload"):
+            for tr in soup.find_all("tr"):
+                cells = tr.find_all("td")
+                if len(cells) < 2:
+                    continue
+                label = cells[0].get_text(strip=True)
+                value = cells[1].get_text(strip=True)
+
+                if "上傳" in label or "上传" in label or "Upload" in label:
+                    user_info["upload"] = self._parse_size(value)
+                elif "下載" in label or "下载" in label or "Download" in label:
+                    user_info["download"] = self._parse_size(value)
+                elif "分享率" in label or "Ratio" in label:
+                    user_info["ratio"] = self._extract_ratio_value(value)
+                elif "魔力" in label or "Bonus" in label or "积分" in label:
+                    user_info["bonus"] = self._parse_number(value)
+                elif "做種" in label or "做种" in label or "Seeding" in label:
+                    match = re.search(r"(\d+)", value)
+                    user_info["seeding"] = int(match.group(1)) if match else 0
+                elif "做種時間" in label or "做种时间" in label or "Seeding Time" in label:
+                    user_info["seeding_time"] = value
+                elif "H&R" in label or "Hit&Run" in label:
+                    match = re.search(r"(\d+)", value)
+                    user_info["hr"] = int(match.group(1)) if match else 0
+                elif "註冊" in label or "注册" in label or "Join" in label:
+                    user_info["join_time"] = value
+                elif "活躍" in label or "活跃" in label or "Last Active" in label:
+                    user_info["last_active"] = value
+
+        # 设置默认值
+        user_info.setdefault("upload", 0)
+        user_info.setdefault("download", 0)
+        user_info.setdefault("ratio", "0.00")
+        user_info.setdefault("bonus", 0)
+        user_info.setdefault("seeding", 0)
+        user_info.setdefault("seeding_time", "")
+        user_info.setdefault("hr", 0)
 
         return user_info
 

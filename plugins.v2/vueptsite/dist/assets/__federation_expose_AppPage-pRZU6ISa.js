@@ -27,31 +27,35 @@ const _hoisted_17 = {
 const _hoisted_18 = { class: "vpts-card__header" };
 const _hoisted_19 = { class: "vpts-card__name" };
 const _hoisted_20 = ["src", "alt"];
-const _hoisted_21 = { class: "ml-2" };
-const _hoisted_22 = { class: "vpts-card__body" };
-const _hoisted_23 = { class: "vpts-field" };
-const _hoisted_24 = { class: "vpts-field__value" };
-const _hoisted_25 = { class: "vpts-field" };
-const _hoisted_26 = { class: "vpts-field__value" };
-const _hoisted_27 = { class: "vpts-field" };
-const _hoisted_28 = { class: "vpts-field__value vpts-field__value--upload" };
-const _hoisted_29 = { class: "vpts-field" };
-const _hoisted_30 = { class: "vpts-field__value vpts-field__value--download" };
-const _hoisted_31 = { class: "vpts-field" };
-const _hoisted_32 = { class: "vpts-field__value" };
-const _hoisted_33 = { class: "vpts-field" };
-const _hoisted_34 = { class: "vpts-field__value" };
-const _hoisted_35 = { class: "vpts-field" };
-const _hoisted_36 = { class: "vpts-field__value" };
-const _hoisted_37 = { class: "vpts-field" };
-const _hoisted_38 = { class: "vpts-field__value" };
-const _hoisted_39 = { class: "vpts-field" };
-const _hoisted_40 = { class: "vpts-field__value vpts-field__value--hr" };
-const _hoisted_41 = {
+const _hoisted_21 = ["href"];
+const _hoisted_22 = {
+  key: 3,
+  class: "ml-2"
+};
+const _hoisted_23 = { class: "vpts-card__body" };
+const _hoisted_24 = { class: "vpts-field" };
+const _hoisted_25 = { class: "vpts-field__value" };
+const _hoisted_26 = { class: "vpts-field" };
+const _hoisted_27 = { class: "vpts-field__value" };
+const _hoisted_28 = { class: "vpts-field" };
+const _hoisted_29 = { class: "vpts-field__value vpts-field__value--upload" };
+const _hoisted_30 = { class: "vpts-field" };
+const _hoisted_31 = { class: "vpts-field__value vpts-field__value--download" };
+const _hoisted_32 = { class: "vpts-field" };
+const _hoisted_33 = { class: "vpts-field__value" };
+const _hoisted_34 = { class: "vpts-field" };
+const _hoisted_35 = { class: "vpts-field__value" };
+const _hoisted_36 = { class: "vpts-field" };
+const _hoisted_37 = { class: "vpts-field__value" };
+const _hoisted_38 = { class: "vpts-field" };
+const _hoisted_39 = { class: "vpts-field__value" };
+const _hoisted_40 = { class: "vpts-field" };
+const _hoisted_41 = { class: "vpts-field__value vpts-field__value--hr" };
+const _hoisted_42 = {
   key: 1,
   class: "vpts-empty"
 };
-const _hoisted_42 = {
+const _hoisted_43 = {
   key: 2,
   class: "vpts-loading"
 };
@@ -292,10 +296,25 @@ return (_ctx, _cache) => {
                         size: "18",
                         color: "primary"
                       })),
-                  _createElementVNode("span", _hoisted_21, _toDisplayString(site.name), 1),
+                  (site.url)
+                    ? (_openBlock(), _createElementBlock("a", {
+                        key: 2,
+                        href: site.url,
+                        target: "_blank",
+                        rel: "noopener noreferrer",
+                        class: "vpts-card__link"
+                      }, [
+                        _createTextVNode(_toDisplayString(site.name) + " ", 1),
+                        _createVNode(_component_v_icon, {
+                          icon: "mdi-open-in-new",
+                          size: "12",
+                          class: "vpts-card__link-icon"
+                        })
+                      ], 8, _hoisted_21))
+                    : (_openBlock(), _createElementBlock("span", _hoisted_22, _toDisplayString(site.name), 1)),
                   (site.error)
                     ? (_openBlock(), _createBlock(_component_v_chip, {
-                        key: 2,
+                        key: 4,
                         size: "x-small",
                         color: "error",
                         variant: "tonal",
@@ -316,7 +335,7 @@ return (_ctx, _cache) => {
                   onClick: $event => (refreshSite(site))
                 }, null, 8, ["loading", "onClick"])
               ]),
-              _createElementVNode("div", _hoisted_22, [
+              _createElementVNode("div", _hoisted_23, [
                 _createVNode(_component_v_row, { dense: "" }, {
                   default: _withCtx(() => [
                     _createVNode(_component_v_col, {
@@ -325,14 +344,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_23, [
+                        _createElementVNode("div", _hoisted_24, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-account",
                             size: "14",
                             color: "grey"
                           }),
                           _cache[11] || (_cache[11] = _createElementVNode("span", { class: "vpts-field__label" }, "账号", -1)),
-                          _createElementVNode("span", _hoisted_24, _toDisplayString(site.username || '-'), 1)
+                          _createElementVNode("span", _hoisted_25, _toDisplayString(site.username || '-'), 1)
                         ])
                       ]),
                       _: 2
@@ -343,14 +362,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_25, [
+                        _createElementVNode("div", _hoisted_26, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-star",
                             size: "14",
                             color: "amber"
                           }),
                           _cache[12] || (_cache[12] = _createElementVNode("span", { class: "vpts-field__label" }, "等级", -1)),
-                          _createElementVNode("span", _hoisted_26, _toDisplayString(site.level || '-'), 1)
+                          _createElementVNode("span", _hoisted_27, _toDisplayString(site.level || '-'), 1)
                         ])
                       ]),
                       _: 2
@@ -361,14 +380,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_27, [
+                        _createElementVNode("div", _hoisted_28, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-arrow-up",
                             size: "14",
                             color: "success"
                           }),
                           _cache[13] || (_cache[13] = _createElementVNode("span", { class: "vpts-field__label" }, "上传", -1)),
-                          _createElementVNode("span", _hoisted_28, _toDisplayString(formatSize(site.upload)), 1)
+                          _createElementVNode("span", _hoisted_29, _toDisplayString(formatSize(site.upload)), 1)
                         ])
                       ]),
                       _: 2
@@ -379,14 +398,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_29, [
+                        _createElementVNode("div", _hoisted_30, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-arrow-down",
                             size: "14",
                             color: "error"
                           }),
                           _cache[14] || (_cache[14] = _createElementVNode("span", { class: "vpts-field__label" }, "下载", -1)),
-                          _createElementVNode("span", _hoisted_30, _toDisplayString(formatSize(site.download)), 1)
+                          _createElementVNode("span", _hoisted_31, _toDisplayString(formatSize(site.download)), 1)
                         ])
                       ]),
                       _: 2
@@ -397,14 +416,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_31, [
+                        _createElementVNode("div", _hoisted_32, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-percent",
                             size: "14",
                             color: "info"
                           }),
                           _cache[15] || (_cache[15] = _createElementVNode("span", { class: "vpts-field__label" }, "分享率", -1)),
-                          _createElementVNode("span", _hoisted_32, _toDisplayString(site.ratio || '0.00'), 1)
+                          _createElementVNode("span", _hoisted_33, _toDisplayString(site.ratio || '0.00'), 1)
                         ])
                       ]),
                       _: 2
@@ -415,14 +434,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_33, [
+                        _createElementVNode("div", _hoisted_34, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-bolt",
                             size: "14",
                             color: "orange"
                           }),
                           _cache[16] || (_cache[16] = _createElementVNode("span", { class: "vpts-field__label" }, "魔力值", -1)),
-                          _createElementVNode("span", _hoisted_34, _toDisplayString(formatNumber(site.bonus)), 1)
+                          _createElementVNode("span", _hoisted_35, _toDisplayString(formatNumber(site.bonus)), 1)
                         ])
                       ]),
                       _: 2
@@ -433,14 +452,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_35, [
+                        _createElementVNode("div", _hoisted_36, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-seeding",
                             size: "14",
                             color: "teal"
                           }),
                           _cache[17] || (_cache[17] = _createElementVNode("span", { class: "vpts-field__label" }, "做种数", -1)),
-                          _createElementVNode("span", _hoisted_36, _toDisplayString(site.seeding || 0), 1)
+                          _createElementVNode("span", _hoisted_37, _toDisplayString(site.seeding || 0), 1)
                         ])
                       ]),
                       _: 2
@@ -451,14 +470,14 @@ return (_ctx, _cache) => {
                       sm: "4"
                     }, {
                       default: _withCtx(() => [
-                        _createElementVNode("div", _hoisted_37, [
+                        _createElementVNode("div", _hoisted_38, [
                           _createVNode(_component_v_icon, {
                             icon: "mdi-clock-outline",
                             size: "14",
                             color: "purple"
                           }),
                           _cache[18] || (_cache[18] = _createElementVNode("span", { class: "vpts-field__label" }, "做种时间", -1)),
-                          _createElementVNode("span", _hoisted_38, _toDisplayString(site.seeding_time || '-'), 1)
+                          _createElementVNode("span", _hoisted_39, _toDisplayString(site.seeding_time || '-'), 1)
                         ])
                       ]),
                       _: 2
@@ -471,14 +490,14 @@ return (_ctx, _cache) => {
                           sm: "4"
                         }, {
                           default: _withCtx(() => [
-                            _createElementVNode("div", _hoisted_39, [
+                            _createElementVNode("div", _hoisted_40, [
                               _createVNode(_component_v_icon, {
                                 icon: "mdi-alert",
                                 size: "14",
                                 color: "error"
                               }),
                               _cache[19] || (_cache[19] = _createElementVNode("span", { class: "vpts-field__label" }, "H&R", -1)),
-                              _createElementVNode("span", _hoisted_40, _toDisplayString(site.hr), 1)
+                              _createElementVNode("span", _hoisted_41, _toDisplayString(site.hr), 1)
                             ])
                           ]),
                           _: 2
@@ -492,7 +511,7 @@ return (_ctx, _cache) => {
           }), 128))
         ]))
       : (!loading.value)
-        ? (_openBlock(), _createElementBlock("div", _hoisted_41, [
+        ? (_openBlock(), _createElementBlock("div", _hoisted_42, [
             _createVNode(_component_v_icon, {
               icon: "mdi-web-off",
               size: "64",
@@ -518,7 +537,7 @@ return (_ctx, _cache) => {
           ]))
         : _createCommentVNode("", true),
     (loading.value)
-      ? (_openBlock(), _createElementBlock("div", _hoisted_42, [
+      ? (_openBlock(), _createElementBlock("div", _hoisted_43, [
           _createVNode(_component_v_progress_circular, {
             indeterminate: "",
             color: "primary"
@@ -530,6 +549,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-115a5b15"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-e45a2e68"]]);
 
 export { AppPage as default };

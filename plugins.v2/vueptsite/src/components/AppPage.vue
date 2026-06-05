@@ -81,7 +81,17 @@
               @error="(e) => e.target.style.display='none'"
             />
             <v-icon v-else icon="mdi-server" size="18" color="primary" />
-            <span class="ml-2">{{ site.name }}</span>
+            <a
+              v-if="site.url"
+              :href="site.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="vpts-card__link"
+            >
+              {{ site.name }}
+              <v-icon icon="mdi-open-in-new" size="12" class="vpts-card__link-icon" />
+            </a>
+            <span v-else class="ml-2">{{ site.name }}</span>
             <v-chip v-if="site.error" size="x-small" color="error" variant="tonal" class="ml-2">
               {{ site.error }}
             </v-chip>
@@ -488,6 +498,25 @@ function formatNumber(num) {
   height: 20px;
   object-fit: contain;
   border-radius: 4px;
+}
+
+.vpts-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: rgb(var(--v-theme-primary));
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.vpts-card__link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.vpts-card__link-icon {
+  opacity: 0.6;
 }
 
 .vpts-card__body {

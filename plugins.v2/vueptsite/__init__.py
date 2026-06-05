@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.11"
+    plugin_version = "1.0.12"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -59,9 +59,8 @@ class VuePtSite(_PluginBase):
         return "vue", "dist/assets"
 
     def get_sidebar_nav(self) -> List[Dict[str, Any]]:
-        if not self._show_sidebar:
-            return []
-        return [{"nav_key": "main", "title": "PT Site", "icon": "mdi-web", "section": "organize", "permission": "manage", "order": 101}]
+        """注册侧栏菜单入口"""
+        return [{"nav_key": "main", "title": "PT Site", "icon": "mdi-web", "section": "discover", "permission": "manage", "order": 101}]
 
     def get_api(self) -> List[Dict[str, Any]]:
         return [
@@ -169,7 +168,7 @@ class VuePtSite(_PluginBase):
                 self._add_log("INFO", f"  -> 成功获取用户数据: {user_info.get('username', '未知')}")
                 user_info["id"] = str(site_id)
                 user_info["name"] = site_name
-                user_info["url"] = site_domain
+                user_info["url"] = self._normalize_domain(site_domain)
                 user_info["icon"] = icon_url
                 user_info["has_cookie"] = True
                 user_info["error"] = None
@@ -182,7 +181,7 @@ class VuePtSite(_PluginBase):
         return {"success": True, "data": {"sites": sites, "total": len(sites)}}
 
     def _empty_site(self, site_id, site_name, site_domain, error_msg):
-        return {"id": str(site_id), "name": site_name, "url": site_domain, "icon": self._get_icon_url(site_domain), "username": "", "level": "", "upload": 0, "download": 0, "ratio": "0.00", "bonus": 0, "seeding": 0, "seeding_time": "", "hr": 0, "join_time": "", "last_active": "", "has_cookie": False, "error": error_msg}
+        return {"id": str(site_id), "name": site_name, "url": self._normalize_domain(site_domain), "icon": self._get_icon_url(site_domain), "username": "", "level": "", "upload": 0, "download": 0, "ratio": "0.00", "bonus": 0, "seeding": 0, "seeding_time": "", "hr": 0, "join_time": "", "last_active": "", "has_cookie": False, "error": error_msg}
 
     def _get_icon_url(self, site_domain: str) -> str:
         """获取站点图标 URL"""

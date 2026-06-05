@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.12"
+    plugin_version = "1.0.15"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -284,13 +284,21 @@ class VuePtSite(_PluginBase):
         if not user_info.get("username"):
             return {}
 
-        # 等级
-        for sel in ["span#info_block .level", "td.text span.level", "span[style*='color']"]:
-            elem = soup.select_one(sel)
-            if elem:
-                text = elem.get_text(strip=True)
-                if text and len(text) < 30:
-                    user_info["level"] = text
+        # 等级 - 从 username 的 class 推断
+        user_link = soup.find("a", href=lambda x: x and "userdetails.php" in x)
+        if user_link:
+            class_name = " ".join(user_link.get("class", []))
+            level_map = {
+                "PowerUser": "Power User",
+                "EliteUser": "Elite User",
+                "VeteranUser": "Veteran User",
+                "Moderator": "Moderator",
+                "Administrator": "Administrator",
+                "User": "User",
+            }
+            for key, level in level_map.items():
+                if key in class_name:
+                    user_info["level"] = level
                     break
 
         # 获取 #info_block 的完整文本
@@ -299,30 +307,51 @@ class VuePtSite(_PluginBase):
             info_text = info_block.get_text(" ", strip=True)
             self._add_log("INFO", f"  -> info_block 文本: {info_text[:500]}")
 
-            # 魔力值: 983,260.2
-            match = re.search(r"魔力值[^:：]*[：:]\s*([\d,\.]+)", info_text)
+            # 魔力值: 983,260.2 或 1,522,984
+            match = re.search(r"魔力值\s*[\[：:\s]?\s*([\d,\.]+)", info_text)
             if match:
                 user_info["bonus"] = self._parse_number(match.group(1))
+                self._add_log("INFO", f"  -> 匹配魔力值: {match.group(1)}")
 
-            # 分享率：6.317
+            # 分享率：6.317 或 6.685
             match = re.search(r"分享率[：:\s]*([\d.]+|Inf|∞)", info_text)
             if match:
                 user_info["ratio"] = match.group(1)
+                self._add_log("INFO", f"  -> 匹配分享率: {match.group(1)}")
 
-            # 上傳量：4.636 TB
-            match = re.search(r"上傳量[：:\s]*([\d.]+\s*[KMGT]i?B)", info_text)
+            # 上傳量：4.636 TB 或 3.437 TB - 支持有无空格
+            match = re.search(r"上傳量[：:\s]*([\d.]+)\s*([KMGT]i?B)", info_text)
             if match:
-                user_info["upload"] = self._parse_size(match.group(1))
+                size_text = f"{match.group(1)} {match.group(2)}"
+                user_info["upload"] = self._parse_size(size_text)
+                self._add_log("INFO", f"  -> 匹配上傳量: {size_text}")
 
-            # 下載量：751.60 GB
-            match = re.search(r"下載量[：:\s]*([\d.]+\s*[KMGT]i?B)", info_text)
+            # 下載量：751.60 GB 或 408.13 GB - 支持有无空格
+            match = re.search(r"下載量[：:\s]*([\d.]+)\s*([KMGT]i?B)", info_text)
             if match:
-                user_info["download"] = self._parse_size(match.group(1))
+                size_text = f"{match.group(1)} {match.group(2)}"
+                user_info["download"] = self._parse_size(size_text)
+                self._add_log("INFO", f"  -> 匹配下載量: {size_text}")
 
-            # 當前活動：做種 1 下載 0
-            seeding_match = re.search(r"當前做種.*?(\d+)", info_text)
+            # 當前活動：做種 X 下載 Y - 更灵活的匹配
+            # 尝试多种模式
+            seeding_match = re.search(r"當前做種\s*(\d+)", info_text)
+            if not seeding_match:
+                seeding_match = re.search(r"做種\s*(\d+)", info_text)
+            if not seeding_match:
+                seeding_match = re.search(r"seeding\s*[:\s]*(\d+)", info_text, re.IGNORECASE)
+            if not seeding_match:
+                # 尝试从 img 后面的数字提取
+                seeding_match = re.search(r"arrowup.*?(\d+)", info_text)
             if seeding_match:
                 user_info["seeding"] = int(seeding_match.group(1))
+                self._add_log("INFO", f"  -> 匹配做種: {seeding_match.group(1)}")
+
+            # 做種時間：XX天XX時XX分
+            time_match = re.search(r"做種時間[：:\s]*([\d]+\s*[天時分秒\w]+)", info_text)
+            if time_match:
+                user_info["seeding_time"] = time_match.group(1)
+                self._add_log("INFO", f"  -> 匹配做種時間: {time_match.group(1)}")
 
             # H&R: 0/0/20
             match = re.search(r"H&R.*?\[(\d+)/(\d+)/(\d+)\]", info_text)

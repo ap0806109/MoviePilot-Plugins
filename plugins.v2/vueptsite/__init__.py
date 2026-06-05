@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.15"
+    plugin_version = "1.0.16"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -301,64 +301,118 @@ class VuePtSite(_PluginBase):
                     user_info["level"] = level
                     break
 
+        # 获取页面所有文本用于解析
+        full_text = soup.get_text(" ", strip=True)
+
         # 获取 #info_block 的完整文本
         info_block = soup.find(id="info_block")
         if info_block:
             info_text = info_block.get_text(" ", strip=True)
             self._add_log("INFO", f"  -> info_block 文本: {info_text[:500]}")
+        else:
+            info_text = full_text
+            self._add_log("INFO", f"  -> 使用全页文本解析")
 
-            # 魔力值: 983,260.2 或 1,522,984
-            match = re.search(r"魔力值\s*[\[：:\s]?\s*([\d,\.]+)", info_text)
+        # === 魔力值 ===
+        # 尝试多种格式
+        bonus_patterns = [
+            r"魔力值\s*[\[：:\s]?\s*([\d,\.]+)",
+            r"魔力[:\s]*([\d,\.]+)",
+            r"Bonus[:\s]*([\d,\.]+)",
+            r"积分[:\s]*([\d,\.]+)",
+        ]
+        for pattern in bonus_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
             if match:
                 user_info["bonus"] = self._parse_number(match.group(1))
                 self._add_log("INFO", f"  -> 匹配魔力值: {match.group(1)}")
+                break
 
-            # 分享率：6.317 或 6.685
-            match = re.search(r"分享率[：:\s]*([\d.]+|Inf|∞)", info_text)
+        # === 分享率 ===
+        ratio_patterns = [
+            r"分享率[：:\s]*([\d.]+|Inf|∞)",
+            r"Ratio[：:\s]*([\d.]+|Inf|∞)",
+        ]
+        for pattern in ratio_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
             if match:
                 user_info["ratio"] = match.group(1)
                 self._add_log("INFO", f"  -> 匹配分享率: {match.group(1)}")
+                break
 
-            # 上傳量：4.636 TB 或 3.437 TB - 支持有无空格
-            match = re.search(r"上傳量[：:\s]*([\d.]+)\s*([KMGT]i?B)", info_text)
+        # === 上传量 ===
+        upload_patterns = [
+            r"上傳量[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"上传量[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"Upload[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"已上傳[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"已上传[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+        ]
+        for pattern in upload_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
             if match:
                 size_text = f"{match.group(1)} {match.group(2)}"
                 user_info["upload"] = self._parse_size(size_text)
                 self._add_log("INFO", f"  -> 匹配上傳量: {size_text}")
+                break
 
-            # 下載量：751.60 GB 或 408.13 GB - 支持有无空格
-            match = re.search(r"下載量[：:\s]*([\d.]+)\s*([KMGT]i?B)", info_text)
+        # === 下載量 ===
+        download_patterns = [
+            r"下載量[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"下载量[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"Download[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"已下載[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+            r"已下载[：:\s]*([\d.]+)\s*([KMGT]i?B)",
+        ]
+        for pattern in download_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
             if match:
                 size_text = f"{match.group(1)} {match.group(2)}"
                 user_info["download"] = self._parse_size(size_text)
                 self._add_log("INFO", f"  -> 匹配下載量: {size_text}")
+                break
 
-            # 當前活動：做種 X 下載 Y - 更灵活的匹配
-            # 尝试多种模式
-            seeding_match = re.search(r"當前做種\s*(\d+)", info_text)
-            if not seeding_match:
-                seeding_match = re.search(r"做種\s*(\d+)", info_text)
-            if not seeding_match:
-                seeding_match = re.search(r"seeding\s*[:\s]*(\d+)", info_text, re.IGNORECASE)
-            if not seeding_match:
-                # 尝试从 img 后面的数字提取
-                seeding_match = re.search(r"arrowup.*?(\d+)", info_text)
+        # === 做种数 ===
+        seeding_patterns = [
+            r"當前做種\s*(\d+)",
+            r"当前做种\s*(\d+)",
+            r"做種\s*(\d+)",
+            r"做种\s*(\d+)",
+            r"Seeding[:\s]*(\d+)",
+            r"arrowup.*?(\d+)",
+        ]
+        for pattern in seeding_patterns:
+            seeding_match = re.search(pattern, info_text, re.IGNORECASE)
             if seeding_match:
                 user_info["seeding"] = int(seeding_match.group(1))
                 self._add_log("INFO", f"  -> 匹配做種: {seeding_match.group(1)}")
+                break
 
-            # 做種時間：XX天XX時XX分
-            time_match = re.search(r"做種時間[：:\s]*([\d]+\s*[天時分秒\w]+)", info_text)
+        # === 做種時間 ===
+        time_patterns = [
+            r"做種時間[：:\s]*([\d]+\s*[天時分秒\w]+)",
+            r"做种时间[：:\s]*([\d]+\s*[天时分秒\w]+)",
+            r"Seeding Time[：:\s]*([\d]+\s*[天時分秒\w]+)",
+        ]
+        for pattern in time_patterns:
+            time_match = re.search(pattern, info_text, re.IGNORECASE)
             if time_match:
                 user_info["seeding_time"] = time_match.group(1)
                 self._add_log("INFO", f"  -> 匹配做種時間: {time_match.group(1)}")
+                break
 
-            # H&R: 0/0/20
-            match = re.search(r"H&R.*?\[(\d+)/(\d+)/(\d+)\]", info_text)
+        # === H&R ===
+        hr_patterns = [
+            r"H&R.*?\[(\d+)/(\d+)/(\d+)\]",
+            r"Hit.?Run.*?\[(\d+)/(\d+)/(\d+)\]",
+        ]
+        for pattern in hr_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
             if match:
                 user_info["hr"] = int(match.group(2))
+                break
 
-        # 表格解析（备用）
+        # === 表格解析（备用） ===
         if not user_info.get("upload"):
             for tr in soup.find_all("tr"):
                 cells = tr.find_all("td")
@@ -387,6 +441,26 @@ class VuePtSite(_PluginBase):
                     user_info["join_time"] = value
                 elif "活躍" in label or "活跃" in label or "Last Active" in label:
                     user_info["last_active"] = value
+
+        # === Font 标签解析（NexusPHP 常用） ===
+        if not user_info.get("upload"):
+            for font in soup.find_all("font"):
+                class_name = " ".join(font.get("class", []))
+                text = font.get_text(strip=True)
+                next_text = font.next_sibling.get_text(strip=True) if font.next_sibling else ""
+                
+                if "color_uploaded" in class_name or "上传" in text:
+                    match = re.search(r"([\d.]+)\s*([KMGT]i?B)", next_text)
+                    if match:
+                        user_info["upload"] = self._parse_size(f"{match.group(1)} {match.group(2)}")
+                elif "color_downloaded" in class_name or "下载" in text:
+                    match = re.search(r"([\d.]+)\s*([KMGT]i?B)", next_text)
+                    if match:
+                        user_info["download"] = self._parse_size(f"{match.group(1)} {match.group(2)}")
+                elif "color_bonus" in class_name or "魔力" in text:
+                    match = re.search(r"([\d,\.]+)", next_text)
+                    if match:
+                        user_info["bonus"] = self._parse_number(match.group(1))
 
         # 设置默认值
         user_info.setdefault("upload", 0)

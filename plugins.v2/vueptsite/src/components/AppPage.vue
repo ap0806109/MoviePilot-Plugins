@@ -159,8 +159,8 @@
             <v-col cols="6" md="3" sm="4">
               <div class="vpts-field">
                 <v-icon icon="mdi-clock-outline" size="14" color="purple" />
-                <span class="vpts-field__label">做种时间</span>
-                <span class="vpts-field__value">{{ site.seeding_time || '-' }}</span>
+                <span class="vpts-field__label">加入时间</span>
+                <span class="vpts-field__value">{{ site.join_time || '-' }}</span>
               </div>
             </v-col>
             <v-col cols="6" md="3" sm="4" v-if="site.hr > 0">

@@ -476,8 +476,8 @@ return (_ctx, _cache) => {
                             size: "14",
                             color: "purple"
                           }),
-                          _cache[18] || (_cache[18] = _createElementVNode("span", { class: "vpts-field__label" }, "做种时间", -1)),
-                          _createElementVNode("span", _hoisted_39, _toDisplayString(site.seeding_time || '-'), 1)
+                          _cache[18] || (_cache[18] = _createElementVNode("span", { class: "vpts-field__label" }, "加入时间", -1)),
+                          _createElementVNode("span", _hoisted_39, _toDisplayString(site.join_time || '-'), 1)
                         ])
                       ]),
                       _: 2
@@ -549,6 +549,6 @@ return (_ctx, _cache) => {
 }
 
 };
-const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-e45a2e68"]]);
+const AppPage = /*#__PURE__*/_export_sfc(_sfc_main, [['__scopeId',"data-v-36a66f9c"]]);
 
 export { AppPage as default };

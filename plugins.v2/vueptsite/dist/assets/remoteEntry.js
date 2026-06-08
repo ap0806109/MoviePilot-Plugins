@@ -2,14 +2,14 @@ const currentImports = {};
       const exportSet = new Set(['Module', '__esModule', 'default', '_export_sfc']);
       let moduleMap = {
 "./Page":()=>{
-      dynamicLoadingCss(["style-C2vklbMD.css"], false, './Page');
+      dynamicLoadingCss(["style-DSrcdkHW.css"], false, './Page');
       return __federation_import('./__federation_expose_Page-CvEwiLnr.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
 "./Config":()=>{
-      dynamicLoadingCss(["style-C2vklbMD.css"], false, './Config');
+      dynamicLoadingCss(["style-DSrcdkHW.css"], false, './Config');
       return __federation_import('./__federation_expose_Config-DH3LzImJ.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},
 "./AppPage":()=>{
-      dynamicLoadingCss(["style-C2vklbMD.css"], false, './AppPage');
-      return __federation_import('./__federation_expose_AppPage-pRZU6ISa.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},};
+      dynamicLoadingCss(["style-DSrcdkHW.css"], false, './AppPage');
+      return __federation_import('./__federation_expose_AppPage-FRjzvPmu.js').then(module =>Object.keys(module).every(item => exportSet.has(item)) ? () => module.default : () => module)},};
       const seen = {};
       const dynamicLoadingCss = (cssFilePaths, dontAppendStylesToHead, exposeItemName) => {
         const metaUrl = import.meta.url;

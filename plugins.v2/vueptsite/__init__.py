@@ -19,7 +19,7 @@ class VuePtSite(_PluginBase):
     plugin_name = "Vue PT Site"
     plugin_desc = "显示 PT 站点用户信息统计，包括等级、上传、下载、做种时间等"
     plugin_icon = "https://raw.githubusercontent.com/ap0806109/MoviePilot-Plugins/refs/heads/main/icons/ptpiler.png"
-    plugin_version = "1.0.16"
+    plugin_version = "1.0.17"
     plugin_author = "ap0806109"
     author_url = "https://github.com/ap0806109/MoviePilot-Plugins"
     plugin_config_prefix = "vueptsite_"
@@ -181,7 +181,7 @@ class VuePtSite(_PluginBase):
         return {"success": True, "data": {"sites": sites, "total": len(sites)}}
 
     def _empty_site(self, site_id, site_name, site_domain, error_msg):
-        return {"id": str(site_id), "name": site_name, "url": self._normalize_domain(site_domain), "icon": self._get_icon_url(site_domain), "username": "", "level": "", "upload": 0, "download": 0, "ratio": "0.00", "bonus": 0, "seeding": 0, "seeding_time": "", "hr": 0, "join_time": "", "last_active": "", "has_cookie": False, "error": error_msg}
+        return {"id": str(site_id), "name": site_name, "url": self._normalize_domain(site_domain), "icon": self._get_icon_url(site_domain), "username": "", "level": "", "upload": 0, "download": 0, "ratio": "0.00", "bonus": 0, "seeding": 0, "join_time": "", "hr": 0, "has_cookie": False, "error": error_msg}
 
     def _get_icon_url(self, site_domain: str) -> str:
         """获取站点图标 URL"""
@@ -257,7 +257,7 @@ class VuePtSite(_PluginBase):
                 self._add_log("INFO", f"  -> 上传: {user_info.get('upload', 0)}, 下载: {user_info.get('download', 0)}")
                 self._add_log("INFO", f"  -> 分享率: {user_info.get('ratio', '0.00')}")
                 self._add_log("INFO", f"  -> 魔力值: {user_info.get('bonus', 0)}")
-                self._add_log("INFO", f"  -> 做种: {user_info.get('seeding', 0)}, 时间: {user_info.get('seeding_time', '')}")
+                self._add_log("INFO", f"  -> 做种: {user_info.get('seeding', 0)}, 加入时间: {user_info.get('join_time', '')}")
                 self._add_log("INFO", f"  -> H&R: {user_info.get('hr', 0)}")
                 return user_info
 
@@ -379,7 +379,6 @@ class VuePtSite(_PluginBase):
             r"做種\s*(\d+)",
             r"做种\s*(\d+)",
             r"Seeding[:\s]*(\d+)",
-            r"arrowup.*?(\d+)",
         ]
         for pattern in seeding_patterns:
             seeding_match = re.search(pattern, info_text, re.IGNORECASE)
@@ -388,17 +387,39 @@ class VuePtSite(_PluginBase):
                 self._add_log("INFO", f"  -> 匹配做種: {seeding_match.group(1)}")
                 break
 
-        # === 做種時間 ===
-        time_patterns = [
-            r"做種時間[：:\s]*([\d]+\s*[天時分秒\w]+)",
-            r"做种时间[：:\s]*([\d]+\s*[天时分秒\w]+)",
-            r"Seeding Time[：:\s]*([\d]+\s*[天時分秒\w]+)",
+        # 如果正则没匹配到，尝试从 img 标签的 title 属性提取
+        if not user_info.get("seeding"):
+            for img in soup.find_all("img", class_="arrowup"):
+                title = img.get("title", "")
+                # 获取 img 后面的数字
+                next_text = ""
+                for sibling in img.next_siblings:
+                    if hasattr(sibling, "get_text"):
+                        next_text = sibling.get_text(strip=True)
+                    else:
+                        next_text = str(sibling).strip()
+                    if next_text:
+                        break
+                match = re.search(r"(\d+)", next_text)
+                if match:
+                    user_info["seeding"] = int(match.group(1))
+                    self._add_log("INFO", f"  -> 从 img 提取做種: {match.group(1)}")
+                    break
+
+        # === 加入时间 ===
+        join_patterns = [
+            r"註冊時間[：:\s]*([\d\-/\s:]+)",
+            r"注册时间[：:\s]*([\d\-/\s:]+)",
+            r"加入時間[：:\s]*([\d\-/\s:]+)",
+            r"加入时间[：:\s]*([\d\-/\s:]+)",
+            r"Join Date[：:\s]*([\d\-/\s:]+)",
+            r"Member Since[：:\s]*([\d\-/\s:]+)",
         ]
-        for pattern in time_patterns:
-            time_match = re.search(pattern, info_text, re.IGNORECASE)
-            if time_match:
-                user_info["seeding_time"] = time_match.group(1)
-                self._add_log("INFO", f"  -> 匹配做種時間: {time_match.group(1)}")
+        for pattern in join_patterns:
+            match = re.search(pattern, info_text, re.IGNORECASE)
+            if match:
+                user_info["join_time"] = match.group(1).strip()
+                self._add_log("INFO", f"  -> 匹配加入時間: {match.group(1)}")
                 break
 
         # === H&R ===
@@ -468,7 +489,7 @@ class VuePtSite(_PluginBase):
         user_info.setdefault("ratio", "0.00")
         user_info.setdefault("bonus", 0)
         user_info.setdefault("seeding", 0)
-        user_info.setdefault("seeding_time", "")
+        user_info.setdefault("join_time", "")
         user_info.setdefault("hr", 0)
 
         return user_info
